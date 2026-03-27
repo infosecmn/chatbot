@@ -206,6 +206,23 @@ async function handleGoal(senderId, session, text) {
     return;
   }
 
+  // GOAL state-д negative хариулт → operator эсвэл баяртай
+  if (isNegative(text)) {
+    await sendQuickReplies(
+      senderId,
+      pick([
+        'За ойлголоо 😊 Хэрэв дараа сонирхвол чөлөөтэй бичээрэй!',
+        'Тийм үү, за за 😊 Хэрэгтэй болвол бичээрэй, би энд байна!',
+        'Ойлголоо! Дараа дахин зочлоорой 😊',
+      ]),
+      [
+        { title: '📞 Зөвлөгөө авах', payload: 'ОПЕРАТОР' },
+        { title: '📋 Бүтээгдэхүүн үзэх', payload: 'ДАХИН' },
+      ]
+    );
+    return;
+  }
+
   await sendQuickReplies(senderId, pick(MSG.UNKNOWN), MSG.UNKNOWN_REPLIES);
 }
 
