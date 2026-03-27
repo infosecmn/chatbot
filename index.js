@@ -71,16 +71,14 @@ app.post('/webhook', async (req, res) => {
 
         console.log(`COMMENT from ${senderId}: ${commentText}`);
 
-        if (isCommentTrigger(commentText)) {
-          // Reply to comment publicly
-          const pick = MSG.pick;
-          await replyToComment(commentId, pick(MSG.HOOK_COMMENT_REPLY));
-          // Send private message - start conversation
-          try {
-            await sendPrivateReply(commentId, pick(MSG.HOOK_DM));
-          } catch (err) {
-            console.error('Private reply failed:', err.message);
-          }
+        // Бүх коммент-д автомат хариулах
+        const pick = MSG.pick;
+        await replyToComment(commentId, pick(MSG.HOOK_COMMENT_REPLY));
+        // DM илгээх - харилцаа эхлүүлэх
+        try {
+          await sendPrivateReply(commentId, pick(MSG.HOOK_DM));
+        } catch (err) {
+          console.error('Private reply failed:', err.message);
         }
       }
     }

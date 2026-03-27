@@ -96,7 +96,7 @@ async function handleMessage(senderId, text) {
   // Show product menu
   if (lower === 'дахин' || lower === 'бүтээгдэхүүн' || lower === 'цэс') {
     session.state = 'GOAL';
-    await sendQuickReplies(senderId, pick(MSG.GOAL_ASK), MSG.GOAL_REPLIES);
+    await sendQuickReplies(senderId, pick(MSG.PRODUCT_MENU), MSG.GOAL_REPLIES);
     return;
   }
 
@@ -141,21 +141,14 @@ async function handleMessage(senderId, text) {
     case 'DONE':
       await sendQuickReplies(
         senderId,
-        pick([
-          'Таны захиалга баталгаажсан 😊 Өөр юу хэрэгтэй вэ?',
-          'Захиалга амжилттай! Өөр бүтээгдэхүүн сонирхож байна уу? 😊',
-        ]),
+        pick(MSG.RETURN_DONE),
         MSG.DONE_REPLIES
       );
       break;
     case 'OPERATOR':
-      // Operator руу шилжсэн хүн дахин бичвэл
       await sendQuickReplies(
         senderId,
-        pick([
-          'Зөвлөх удахгүй хариулна 😊 Хүлээх хооронд бүтээгдэхүүн сонирхох уу?',
-          'Хариу хүлээж байна 😊 Бүтээгдэхүүн үзэх үү?',
-        ]),
+        pick(MSG.RETURN_OPERATOR),
         MSG.WELCOME_REPLIES
       );
       break;
