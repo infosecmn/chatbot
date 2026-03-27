@@ -2,9 +2,31 @@ const axios = require('axios');
 const config = require('./config');
 
 const API = 'https://graph.facebook.com/v19.0';
+const TYPING_DELAY = 5000; // 5 seconds
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendTypingOn(recipientId) {
+  try {
+    await axios.post(
+      `${API}/me/messages`,
+      {
+        recipient: { id: recipientId },
+        sender_action: 'typing_on',
+      },
+      { params: { access_token: config.PAGE_ACCESS_TOKEN } }
+    );
+  } catch (err) {
+    // ignore typing indicator errors
+  }
+}
 
 async function sendText(recipientId, text) {
   try {
+    await sendTypingOn(recipientId);
+    await delay(TYPING_DELAY);
     await axios.post(
       `${API}/me/messages`,
       {
@@ -21,6 +43,8 @@ async function sendText(recipientId, text) {
 
 async function sendQuickReplies(recipientId, text, replies) {
   try {
+    await sendTypingOn(recipientId);
+    await delay(TYPING_DELAY);
     const quick_replies = replies.map((r) =>
       typeof r === 'string'
         ? { content_type: 'text', title: r, payload: r }
