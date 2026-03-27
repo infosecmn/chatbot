@@ -93,9 +93,16 @@ async function handleMessage(senderId, text) {
     return;
   }
 
+  // Show product menu
+  if (lower === 'дахин' || lower === 'бүтээгдэхүүн' || lower === 'цэс') {
+    session.state = 'GOAL';
+    await sendQuickReplies(senderId, pick(MSG.GOAL_ASK), MSG.GOAL_REPLIES);
+    return;
+  }
+
   // Greetings / reset
   const greetings = [
-    'дахин', 'reset', 'эхлэх', 'hi', 'hello', 'hey', 'yo',
+    'reset', 'эхлэх', 'hi', 'hello', 'hey', 'yo',
     'сайн байна уу', 'сайн уу', 'сайнуу', 'байна уу', 'юу байна',
     'мэнд', 'мэндээ',
   ];
