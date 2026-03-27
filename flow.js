@@ -175,6 +175,13 @@ async function handleUrgencyResponse(senderId, session, text) {
 
 // CLOSE -> DONE (collect order info)
 async function handleOrder(senderId, session, text) {
+  // Allow user to cancel or go back
+  if (isNegative(text)) {
+    session.state = 'GOAL';
+    await sendQuickReplies(senderId, 'Ойлголоо 😊 Өөр юу сонирхож байна?', MSG.WELCOME_REPLIES);
+    return;
+  }
+
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
 
   if (lines.length >= 2) {
