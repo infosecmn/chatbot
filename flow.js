@@ -4,6 +4,34 @@ const { findProduct, getAllProductsMenu, getProductByNumber } = require('./produ
 const MSG = require('./messages');
 const { scheduleFollowup } = require('./followup');
 
+// Latin -> Mongolian transliteration map
+const LATIN_MAP = {
+  // Global commands
+  'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин',
+  // Positive
+  'tiim': 'тийм', 'za': 'за', 'avah': 'авах', 'avna': 'авна', 'avmaar': 'авмаар',
+  'avya': 'авъя', 'bolno': 'болно', 'zahialah': 'захиалах', 'zahialna': 'захиална',
+  'zuv': 'зөв', 'sain': 'сайн', 'goyo': 'гоё', 'husч': 'хүсч', 'medeh': 'мэдэх',
+  'une': 'үнэ', 'sonirhoz': 'сонирхож',
+  // Negative
+  'ugui': 'үгүй', 'bolih': 'болих', 'daraa': 'дараа', 'hereggui': 'хэрэггүй',
+  'baihgui': 'байхгүй', 'bolohgui': 'болохгүй', 'oilgohgui': 'ойлгохгүй',
+  // Products / goals
+  'jin': 'жин', 'turah': 'турах', 'bulchin': 'булчин', 'darhlaa': 'дархлаа',
+  'vitamin': 'витамин', 'eruul': 'эрүүл', 'protein': 'протейн',
+  'gym': 'фитнес', 'slim': 'турах', 'diet': 'турах',
+};
+
+// Transliterate Latin text to Mongolian
+function transliterate(text) {
+  let result = text;
+  for (const [latin, cyrillic] of Object.entries(LATIN_MAP)) {
+    const regex = new RegExp(`\\b${latin}\\b`, 'gi');
+    result = result.replace(regex, cyrillic);
+  }
+  return result;
+}
+
 // Comment trigger keywords
 const COMMENT_TRIGGERS = ['үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info', 'захиалах', 'хэрхэн'];
 
@@ -14,7 +42,7 @@ function isCommentTrigger(text) {
 
 async function handleMessage(senderId, text) {
   const session = getSession(senderId);
-  const lower = text.toLowerCase().trim();
+  const lower = transliterate(text.toLowerCase().trim());
 
   // Global commands
   if (lower === 'оператор' || lower === 'operator') {
