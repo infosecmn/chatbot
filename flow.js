@@ -7,7 +7,7 @@ const { scheduleFollowup } = require('./followup');
 // Latin -> Mongolian transliteration map
 const LATIN_MAP = {
   // Global commands
-  'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин',
+  'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин', 'heruul': 'хэрүүл',
   // Positive
   'tiim': 'тийм', 'za': 'за', 'avah': 'авах', 'avna': 'авна', 'avmaar': 'авмаар',
   'avya': 'авъя', 'bolno': 'болно', 'zahialah': 'захиалах', 'zahialna': 'захиална',
@@ -43,6 +43,14 @@ function isCommentTrigger(text) {
 async function handleMessage(senderId, text) {
   const session = getSession(senderId);
   const lower = transliterate(text.toLowerCase().trim());
+
+  // Toggle argue mode
+  if (lower === 'хэрүүл') {
+    session.argueMode = !session.argueMode;
+    const status = session.argueMode ? 'идэвхжлээ 🔥' : 'унтарлаа 😌';
+    await sendText(senderId, `Хэрүүл горим ${status}`);
+    return;
+  }
 
   // Global commands
   if (lower === 'оператор' || lower === 'operator') {
@@ -157,6 +165,10 @@ async function handleProductResponse(senderId, session, text) {
   }
 
   if (isNegative(text)) {
+    if (session.argueMode) {
+      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_PRODUCT), MSG.OBJECTION_REPLIES);
+      return;
+    }
     session.state = 'GOAL';
     await sendQuickReplies(senderId, 'Өөр бүтээгдэхүүн сонирхож байна уу? 👇', MSG.GOAL_REPLIES);
     return;
@@ -184,6 +196,10 @@ async function handleUrgencyResponse(senderId, session, text) {
   }
 
   if (isNegative(text)) {
+    if (session.argueMode) {
+      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_URGENCY), MSG.OBJECTION_REPLIES);
+      return;
+    }
     scheduleFollowup(senderId);
     await sendQuickReplies(
       senderId,
@@ -205,6 +221,10 @@ async function handleUrgencyResponse(senderId, session, text) {
 async function handleOrder(senderId, session, text) {
   // Allow user to cancel or go back
   if (isNegative(text)) {
+    if (session.argueMode) {
+      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_CLOSE), MSG.OBJECTION_REPLIES);
+      return;
+    }
     session.state = 'GOAL';
     await sendQuickReplies(senderId, 'Ойлголоо 😊 Өөр юу сонирхож байна?', MSG.WELCOME_REPLIES);
     return;
@@ -227,6 +247,11 @@ async function handleOrder(senderId, session, text) {
 
   // Not enough info, ask again
   await sendText(senderId, MSG.ORDER_ASK);
+}
+
+// Random picker
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 // Helpers
