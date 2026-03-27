@@ -83,7 +83,7 @@ async function handleMessage(senderId, text) {
       await handleUrgencyResponse(senderId, session, lower);
       break;
     case 'CLOSE':
-      await handleOrder(senderId, session, text);
+      await handleOrder(senderId, session, text, lower);
       break;
     case 'DONE':
       await sendQuickReplies(
@@ -218,9 +218,9 @@ async function handleUrgencyResponse(senderId, session, text) {
 }
 
 // CLOSE -> DONE (collect order info)
-async function handleOrder(senderId, session, text) {
+async function handleOrder(senderId, session, text, lower) {
   // Allow user to cancel or go back
-  if (isNegative(text)) {
+  if (isNegative(lower)) {
     if (session.argueMode) {
       await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_CLOSE), MSG.OBJECTION_REPLIES);
       return;
@@ -254,22 +254,25 @@ function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Helpers
-function isPositive(text) {
-  const positives = [
-    'тийм', 'за', 'авах', 'авна', 'авмаар', 'yes', 'ok', 'ок',
-    'авъя', 'болно', 'захиалах', 'захиална', 'зөв', 'сайн', 'гоё',
-    'авья', 'хүсч', 'сонирхож', 'мэдэх', 'үнэ',
-  ];
-  return positives.some((p) => text.includes(p));
-}
-
+// Helpers — isNegative-г ЭХЛЭЭД шалгана (авахгүй = negative, авах = positive)
 function isNegative(text) {
   const negatives = [
     'үгүй', 'болих', 'дараа', 'no', 'нет', 'хэрэггүй',
-    'байхгүй', 'болохгүй', 'ойлгохгүй',
+    'байхгүй', 'болохгүй', 'ойлгохгүй', 'авахгүй', 'хүсэхгүй',
+    'мэдэхгүй', 'сонирхохгүй',
   ];
   return negatives.some((n) => text.includes(n));
+}
+
+function isPositive(text) {
+  // Negative-тэй давхцахгүйн тулд эхлээд negative шалгана
+  if (isNegative(text)) return false;
+  const positives = [
+    'тийм', 'за', 'авах', 'авна', 'авмаар', 'yes', 'ok', 'ок',
+    'авъя', 'болно', 'захиалах', 'захиална', 'зөв', 'гоё',
+    'авья', 'хүсч', 'сонирхож', 'үнэ',
+  ];
+  return positives.some((p) => text.includes(p));
 }
 
 module.exports = { handleMessage, isCommentTrigger };

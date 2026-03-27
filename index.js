@@ -41,7 +41,8 @@ app.post('/webhook', async (req, res) => {
     for (const event of entry.messaging || []) {
       if (event.message && !event.message.is_echo) {
         const senderId = event.sender.id;
-        const text = event.message.text;
+        // Quick reply payload-г text-ээс илүү ашиглах
+        const text = event.message.quick_reply?.payload || event.message.text;
         if (text) {
           console.log(`MSG from ${senderId}: ${text}`);
           await handleMessage(senderId, text);
