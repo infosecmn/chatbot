@@ -73,10 +73,11 @@ app.post('/webhook', async (req, res) => {
 
         if (isCommentTrigger(commentText)) {
           // Reply to comment publicly
-          await replyToComment(commentId, MSG.HOOK_COMMENT_REPLY);
-          // Send private message
+          const pick = MSG.pick;
+          await replyToComment(commentId, pick(MSG.HOOK_COMMENT_REPLY));
+          // Send private message - start conversation
           try {
-            await sendPrivateReply(commentId, MSG.HOOK_DM);
+            await sendPrivateReply(commentId, pick(MSG.HOOK_DM));
           } catch (err) {
             console.error('Private reply failed:', err.message);
           }

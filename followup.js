@@ -2,21 +2,19 @@ const { sendText, sendQuickReplies } = require('./messenger');
 const { getSession, getAllSessions } = require('./sessions');
 const MSG = require('./messages');
 const config = require('./config');
+const pick = MSG.pick;
 
 const followupTimers = new Map();
 
 function scheduleFollowup(senderId) {
-  // Clear existing timers
   cancelFollowup(senderId);
-
-  const session = getSession(senderId);
 
   // First follow-up: 30 minutes
   const timer1 = setTimeout(async () => {
     const s = getSession(senderId);
     if (s.state !== 'DONE' && s.state !== 'OPERATOR') {
       s.followupCount++;
-      await sendQuickReplies(senderId, MSG.FOLLOWUP_1, MSG.FOLLOWUP_1_REPLIES);
+      await sendQuickReplies(senderId, pick(MSG.FOLLOWUP_1), MSG.FOLLOWUP_1_REPLIES);
     }
   }, config.FOLLOWUP_DELAY_1);
 
@@ -25,7 +23,7 @@ function scheduleFollowup(senderId) {
     const s = getSession(senderId);
     if (s.state !== 'DONE' && s.state !== 'OPERATOR') {
       s.followupCount++;
-      await sendQuickReplies(senderId, MSG.FOLLOWUP_2, MSG.FOLLOWUP_2_REPLIES);
+      await sendQuickReplies(senderId, pick(MSG.FOLLOWUP_2), MSG.FOLLOWUP_2_REPLIES);
     }
   }, config.FOLLOWUP_DELAY_2);
 

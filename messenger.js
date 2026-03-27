@@ -2,7 +2,13 @@ const axios = require('axios');
 const config = require('./config');
 
 const API = 'https://graph.facebook.com/v19.0';
-const TYPING_DELAY = 5000; // 5 seconds
+// Dynamic typing delay - short text = fast reply, long text = slower
+// Min 1.5s, ~50ms per character, max 6s + random variation
+function calcTypingDelay(text) {
+  const base = Math.min(text.length * 50, 6000);
+  const jitter = Math.random() * 1500; // 0-1.5s random
+  return Math.max(1500, base + jitter);
+}
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,7 +32,7 @@ async function sendTypingOn(recipientId) {
 async function sendText(recipientId, text) {
   try {
     await sendTypingOn(recipientId);
-    await delay(TYPING_DELAY);
+    await delay(calcTypingDelay(text));
     await axios.post(
       `${API}/me/messages`,
       {
@@ -44,7 +50,7 @@ async function sendText(recipientId, text) {
 async function sendQuickReplies(recipientId, text, replies) {
   try {
     await sendTypingOn(recipientId);
-    await delay(TYPING_DELAY);
+    await delay(calcTypingDelay(text));
     const quick_replies = replies.map((r) =>
       typeof r === 'string'
         ? { content_type: 'text', title: r, payload: r }

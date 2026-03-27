@@ -3,72 +3,55 @@ const { getSession, resetSession } = require('./sessions');
 const { findProduct, getAllProductsMenu, getProductByNumber } = require('./products');
 const MSG = require('./messages');
 const { scheduleFollowup } = require('./followup');
+const pick = MSG.pick;
 
-// Latin -> Mongolian transliteration map
+// ===== Latin -> Mongolian transliteration =====
 const LATIN_MAP = {
-  // Global commands
+  // Commands
   'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин',
   'heruul': 'хэрүүл', 'menu': 'дахин', 'start': 'эхлэх',
-
   // Greetings
-  'sain': 'сайн', 'baina': 'байна', 'uu': 'уу', 'sainuu': 'сайн уу',
-  'saixan': 'сайхан', 'zugeer': 'зүгээр',
-
-  // Positive responses
+  'sainuu': 'сайн уу', 'sain': 'сайн', 'baina': 'байна',
+  'mendee': 'мэндээ', 'mend': 'мэнд',
+  // Positive
   'tiim': 'тийм', 'za': 'за', 'avah': 'авах', 'avna': 'авна', 'avmaar': 'авмаар',
   'avya': 'авъя', 'bolno': 'болно', 'zahialah': 'захиалах', 'zahialna': 'захиална',
   'zuv': 'зөв', 'goyo': 'гоё', 'goye': 'гоё', 'goe': 'гоё',
-  'husч': 'хүсч', 'husej': 'хүсэж', 'husne': 'хүснэ',
-  'une': 'үнэ', 'sonirhoz': 'сонирхож', 'sonirhoj': 'сонирхож',
-  'heregtei': 'хэрэгтэй', 'iim': 'ийм', 'zaa': 'за', 'zaaa': 'за',
-  'ok': 'за', 'okay': 'за', 'yup': 'тийм', 'yep': 'тийм',
-  'hamar': 'хамар', 'aviya': 'авъя', 'avch': 'авч',
-  'medeh': 'мэдэх', 'medehleh': 'мэдэхлэх',
-  'hүseh': 'хүсэх', 'sonirh': 'сонирх',
-
-  // Negative responses
+  'husej': 'хүсэж', 'husne': 'хүснэ', 'husemeer': 'хүсэмээр',
+  'une': 'үнэ', 'sonirhoj': 'сонирхож', 'heregtei': 'хэрэгтэй',
+  'ok': 'за', 'okay': 'за', 'yep': 'тийм', 'yup': 'тийм',
+  'aviya': 'авъя', 'avchi': 'авч', 'avchih': 'авчих',
+  'delgerengui': 'дэлгэрэнгүй', 'tailbar': 'тайлбар',
+  // Negative
   'ugui': 'үгүй', 'bolih': 'болих', 'daraa': 'дараа',
   'hereggui': 'хэрэггүй', 'baihgui': 'байхгүй',
   'bolohgui': 'болохгүй', 'oilgohgui': 'ойлгохгүй',
   'avahgui': 'авахгүй', 'husehgui': 'хүсэхгүй',
   'medehgui': 'мэдэхгүй', 'sonirohgui': 'сонирхохгүй',
-  'ilduu': 'илдүү', 'ildүү': 'илдүү', 'yavah': 'явах',
-  'uuchlaarai': 'уучлаарай', 'bayrtai': 'баяртай',
-
-  // Products / goals - weight loss
+  'bayrtai': 'баяртай', 'yavah': 'явах',
+  // Products - weight
   'jin': 'жин', 'turah': 'турах', 'turaah': 'тураах', 'turna': 'турна',
-  'ooh': 'өөх', 'uuh': 'өөх', 'hasah': 'хасах', 'hasna': 'хасна',
-  'slim': 'турах', 'diet': 'турах', 'weight': 'жин',
-  'calorie': 'калори', 'kalori': 'калори',
-  'targa': 'тарга', 'targalah': 'таргалах', 'turaaх': 'тураах',
-  'shahah': 'шахах', 'shataah': 'шатаах',
-
-  // Products / goals - muscle
-  'bulchin': 'булчин', 'muscle': 'булчин', 'protein': 'протейн',
-  'proteiin': 'протейн', 'gym': 'фитнес', 'fitness': 'фитнес',
-  'fitnes': 'фитнес', 'osgoh': 'өсгөх', 'tamir': 'тамир',
-  'dasgal': 'дасгал', 'huch': 'хүч', 'huchtei': 'хүчтэй',
-  'bodybuilding': 'булчин', 'workout': 'дасгал', 'bcaa': 'булчин',
-
-  // Products / goals - immunity
+  'ooh': 'өөх', 'hasah': 'хасах', 'diet': 'турах', 'slim': 'турах',
+  'targa': 'тарга', 'shataah': 'шатаах', 'kalori': 'калори',
+  'gedes': 'гэдэс', 'hevlii': 'хэвлий', 'hoool': 'хоол',
+  // Products - muscle
+  'bulchin': 'булчин', 'protein': 'протейн', 'gym': 'фитнес',
+  'fitness': 'фитнес', 'osgoh': 'өсгөх', 'tamir': 'тамир',
+  'dasgal': 'дасгал', 'huch': 'хүч', 'workout': 'дасгал',
+  'bcaa': 'булчин', 'muscle': 'булчин',
+  // Products - immunity
   'darhlaa': 'дархлаа', 'vitamin': 'витамин', 'eruul': 'эрүүл',
-  'eruul mend': 'эрүүл мэнд', 'bie': 'бие', 'health': 'эрүүл',
-  'immune': 'дархлаа', 'immunity': 'дархлаа',
-  'omega': 'дархлаа', 'multivitamin': 'витамин',
-  'hanalga': 'ханалга', 'shahtah': 'шахтах',
-  'uvduh': 'өвдөх', 'ovdoh': 'өвдөх', 'haluun': 'халуун',
-  'tomuu': 'томуу', 'haniad': 'ханиад', 'daah': 'даах',
-
-  // General health terms
-  'эмчилгээ': 'эмчилгээ', 'emchilgee': 'эмчилгээ',
-  'shuud': 'шууд', 'hurdan': 'хурдан', 'udaan': 'удаан',
-  'saihan': 'сайхан', 'muhai': 'муухай',
-  'zurhni': 'зүрхний', 'zurh': 'зүрх',
-  'hadgalah': 'хадгалах', 'hudaldan': 'худалдан',
-  'bagts': 'багц', 'bagc': 'багц',
+  'bie': 'бие', 'health': 'эрүүл', 'immune': 'дархлаа',
+  'omega': 'дархлаа', 'tomuu': 'томуу', 'haniad': 'ханиад',
+  'ovdoh': 'өвдөх', 'noir': 'нойр', 'stress': 'стресс',
+  'ars': 'арьс', 'tolgo': 'толгой', 'zurhni': 'зүрхний',
+  'eleg': 'элэг', 'hodood': 'ходоод', 'yas': 'яс',
+  // General
+  'bagts': 'багц', 'bagc': 'багц', 'hurdan': 'хурдан', 'shuud': 'шууд',
+  'hed': 'хэд', 'haana': 'хаана', 'yamar': 'ямар',
+  'hudaldah': 'худалдах', 'zahialga': 'захиалга',
 };
 
-// Transliterate Latin text to Mongolian
 function transliterate(text) {
   let result = text;
   for (const [latin, cyrillic] of Object.entries(LATIN_MAP)) {
@@ -78,12 +61,11 @@ function transliterate(text) {
   return result;
 }
 
-// Comment trigger keywords
+// ===== Comment triggers =====
 const COMMENT_TRIGGERS = [
-  'үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info', 'захиалах', 'хэрхэн',
-  'хэдтэй', 'хэд вэ', 'зарна', 'зарах', 'хямдрал', 'хямд', 'хаанаас', 'хаана',
-  'сонирхож', 'надад', 'хэрэгтэй', 'хэрхэн авах', 'юу вэ', 'тайлбар',
-  'une', 'hed', 'avah', 'haana', 'hamgiin',
+  'үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'захиалах', 'хэрхэн',
+  'хэдтэй', 'зарна', 'хямдрал', 'хаана', 'сонирхож', 'хэрэгтэй',
+  'price', 'info', 'how', 'buy', 'une', 'hed', 'avah', 'haana',
 ];
 
 function isCommentTrigger(text) {
@@ -91,6 +73,7 @@ function isCommentTrigger(text) {
   return COMMENT_TRIGGERS.some((kw) => lower.includes(kw));
 }
 
+// ===== Main handler =====
 async function handleMessage(senderId, text) {
   const session = getSession(senderId);
   const lower = transliterate(text.toLowerCase().trim());
@@ -103,21 +86,28 @@ async function handleMessage(senderId, text) {
     return;
   }
 
-  // Global commands
+  // Operator
   if (lower === 'оператор' || lower === 'operator') {
     session.state = 'OPERATOR';
-    await sendText(senderId, MSG.OPERATOR);
+    await sendText(senderId, pick(MSG.OPERATOR));
     return;
   }
 
+  // Greetings / reset
   const greetings = [
     'дахин', 'reset', 'эхлэх', 'hi', 'hello', 'hey', 'yo',
     'сайн байна уу', 'сайн уу', 'сайнуу', 'байна уу', 'юу байна',
-    'сайн бна уу', 'мэнд', 'мэндээ', 'зугаатай', 'зөгөөр',
+    'мэнд', 'мэндээ',
   ];
   if (greetings.some((g) => lower === g || lower.startsWith(g + ' '))) {
     resetSession(senderId);
-    await sendQuickReplies(senderId, MSG.WELCOME, MSG.WELCOME_REPLIES);
+    await sendQuickReplies(senderId, pick(MSG.WELCOME), MSG.WELCOME_REPLIES);
+    return;
+  }
+
+  // Price inquiry from any state
+  if (lower.includes('үнэ') || lower.includes('хэд') || lower === 'үнэ') {
+    await sendQuickReplies(senderId, pick(MSG.PRICE), MSG.PRICE_REPLIES);
     return;
   }
 
@@ -144,11 +134,22 @@ async function handleMessage(senderId, text) {
     case 'DONE':
       await sendQuickReplies(
         senderId,
-        'Таны захиалга баталгаажсан ✅\nӨөр юу хэрэгтэй вэ?',
-        [
-          { title: '📋 Өөр бүтээгдэхүүн', payload: 'ДАХИН' },
-          { title: '📞 Оператор', payload: 'ОПЕРАТОР' },
-        ]
+        pick([
+          'Таны захиалга баталгаажсан 😊 Өөр юу хэрэгтэй вэ?',
+          'Захиалга амжилттай! Өөр бүтээгдэхүүн сонирхож байна уу? 😊',
+        ]),
+        MSG.DONE_REPLIES
+      );
+      break;
+    case 'OPERATOR':
+      // Operator руу шилжсэн хүн дахин бичвэл
+      await sendQuickReplies(
+        senderId,
+        pick([
+          'Зөвлөх удахгүй хариулна 😊 Хүлээх хооронд бүтээгдэхүүн сонирхох уу?',
+          'Хариу хүлээж байна 😊 Бүтээгдэхүүн үзэх үү?',
+        ]),
+        MSG.WELCOME_REPLIES
       );
       break;
     default:
@@ -156,128 +157,153 @@ async function handleMessage(senderId, text) {
   }
 }
 
-// NEW -> GOAL
+// ===== NEW -> GOAL =====
 async function handleNew(senderId, session, text) {
-  // Check if text already contains a product hint
+  // Product hint
   const product = findProduct(text);
   if (product) {
     session.product = product;
     session.state = 'PRODUCT';
+    await sendText(senderId, pick(MSG.PRODUCT_INTRO));
     await sendQuickReplies(senderId, product.message, MSG.PRODUCT_REPLIES);
     scheduleFollowup(senderId);
     return;
   }
 
-  // Check if it's a goal number
+  // Goal number
   const byNum = getProductByNumber(text.trim());
   if (byNum) {
     session.product = byNum;
     session.state = 'PRODUCT';
+    await sendText(senderId, pick(MSG.PRODUCT_INTRO));
     await sendQuickReplies(senderId, byNum.message, MSG.PRODUCT_REPLIES);
     scheduleFollowup(senderId);
     return;
   }
 
   session.state = 'GOAL';
-  await sendQuickReplies(senderId, MSG.WELCOME, MSG.WELCOME_REPLIES);
+  await sendQuickReplies(senderId, pick(MSG.WELCOME), MSG.WELCOME_REPLIES);
   scheduleFollowup(senderId);
 }
 
-// GOAL -> PRODUCT
+// ===== GOAL -> PRODUCT =====
 async function handleGoal(senderId, session, text) {
-  // Try number selection
   const byNum = getProductByNumber(text.trim());
   if (byNum) {
     session.product = byNum;
     session.state = 'PRODUCT';
+    await sendText(senderId, pick(MSG.PRODUCT_INTRO));
     await sendQuickReplies(senderId, byNum.message, MSG.PRODUCT_REPLIES);
     return;
   }
 
-  // Try keyword match
   const product = findProduct(text);
   if (product) {
     session.product = product;
     session.state = 'PRODUCT';
+    await sendText(senderId, pick(MSG.PRODUCT_INTRO));
     await sendQuickReplies(senderId, product.message, MSG.PRODUCT_REPLIES);
     return;
   }
 
-  // Can't understand - show options with quick replies
-  await sendQuickReplies(senderId, MSG.UNKNOWN, MSG.UNKNOWN_REPLIES);
+  await sendQuickReplies(senderId, pick(MSG.UNKNOWN), MSG.UNKNOWN_REPLIES);
 }
 
-// PRODUCT -> TRUST (user says yes/interested)
+// ===== PRODUCT -> TRUST =====
 async function handleProductResponse(senderId, session, text) {
   if (isPositive(text)) {
     session.state = 'TRUST';
-    await sendQuickReplies(senderId, MSG.TRUST, MSG.URGENCY_REPLIES);
+    await sendQuickReplies(senderId, pick(MSG.TRUST), MSG.TRUST_REPLIES);
     return;
   }
 
   if (isNegative(text)) {
     if (session.argueMode) {
-      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_PRODUCT), MSG.OBJECTION_REPLIES);
+      await sendQuickReplies(senderId, pick(MSG.OBJECTION_PRODUCT), MSG.OBJECTION_REPLIES);
       return;
     }
     session.state = 'GOAL';
-    await sendQuickReplies(senderId, 'Өөр бүтээгдэхүүн сонирхож байна уу? 👇', MSG.GOAL_REPLIES);
-    return;
-  }
-
-  // Repeat product info with buttons
-  await sendQuickReplies(
-    senderId,
-    session.product?.message || MSG.GOAL_ASK,
-    MSG.PRODUCT_REPLIES
-  );
-}
-
-// TRUST -> URGENCY -> CLOSE
-async function handleTrustResponse(senderId, session, text) {
-  session.state = 'URGENCY';
-  await sendQuickReplies(senderId, MSG.URGENCY, MSG.URGENCY_REPLIES);
-}
-
-async function handleUrgencyResponse(senderId, session, text) {
-  if (isPositive(text)) {
-    session.state = 'CLOSE';
-    await sendText(senderId, MSG.ORDER_ASK);
-    return;
-  }
-
-  if (isNegative(text)) {
-    if (session.argueMode) {
-      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_URGENCY), MSG.OBJECTION_REPLIES);
-      return;
-    }
-    scheduleFollowup(senderId);
     await sendQuickReplies(
       senderId,
-      'Ойлголоо 😊 Дараа дахин бодоорой!',
-      [
-        { title: '📋 Бусад бүтээгдэхүүн', payload: 'ДАХИН' },
-        { title: '📞 Оператор', payload: 'ОПЕРАТОР' },
-      ]
+      pick([
+        'Өөр бүтээгдэхүүн сонирхож байна уу? 😊',
+        'За за, өөр юу үзэх вэ? 👇',
+        'Ямар бүтээгдэхүүн таарах бол? Сонгоорой 😊',
+      ]),
+      MSG.GOAL_REPLIES
     );
     return;
   }
 
-  // Default: assume positive
-  session.state = 'CLOSE';
-  await sendText(senderId, MSG.ORDER_ASK);
+  // Repeat with engagement
+  await sendQuickReplies(senderId, pick(MSG.PRODUCT_FOLLOWUP), MSG.PRODUCT_REPLIES);
 }
 
-// CLOSE -> DONE (collect order info)
+// ===== TRUST -> URGENCY =====
+async function handleTrustResponse(senderId, session, text) {
+  if (isPositive(text)) {
+    session.state = 'CLOSE';
+    await sendText(senderId, pick(MSG.ORDER_ASK));
+    return;
+  }
+
+  if (isNegative(text)) {
+    if (session.argueMode) {
+      await sendQuickReplies(senderId, pick(MSG.OBJECTION_PRODUCT), MSG.OBJECTION_REPLIES);
+      return;
+    }
+    // Hesitate - push to urgency
+    session.state = 'URGENCY';
+    await sendQuickReplies(senderId, pick(MSG.HESITATE), MSG.HESITATE_REPLIES);
+    return;
+  }
+
+  // Default: push to urgency
+  session.state = 'URGENCY';
+  await sendQuickReplies(senderId, pick(MSG.URGENCY), MSG.URGENCY_REPLIES);
+}
+
+// ===== URGENCY -> CLOSE =====
+async function handleUrgencyResponse(senderId, session, text) {
+  if (isPositive(text)) {
+    session.state = 'CLOSE';
+    await sendText(senderId, pick(MSG.ORDER_ASK));
+    return;
+  }
+
+  if (isNegative(text)) {
+    if (session.argueMode) {
+      await sendQuickReplies(senderId, pick(MSG.OBJECTION_URGENCY), MSG.OBJECTION_REPLIES);
+      return;
+    }
+    // Don't give up easily - hesitate
+    session.state = 'URGENCY';
+    scheduleFollowup(senderId);
+    await sendQuickReplies(senderId, pick(MSG.HESITATE), MSG.HESITATE_REPLIES);
+    return;
+  }
+
+  // Default: assume interested, push to close
+  session.state = 'CLOSE';
+  await sendText(senderId, pick(MSG.ORDER_ASK));
+}
+
+// ===== CLOSE -> DONE =====
 async function handleOrder(senderId, session, text, lower) {
-  // Allow user to cancel or go back
   if (isNegative(lower)) {
     if (session.argueMode) {
-      await sendQuickReplies(senderId, pickRandom(MSG.OBJECTION_CLOSE), MSG.OBJECTION_REPLIES);
+      await sendQuickReplies(senderId, pick(MSG.OBJECTION_CLOSE), MSG.OBJECTION_REPLIES);
       return;
     }
     session.state = 'GOAL';
-    await sendQuickReplies(senderId, 'Ойлголоо 😊 Өөр юу сонирхож байна?', MSG.WELCOME_REPLIES);
+    await sendQuickReplies(
+      senderId,
+      pick([
+        'Ойлголоо 😊 Өөр юу сонирхож байна?',
+        'За за, өөр бүтээгдэхүүн үзэх үү? 😊',
+      ]),
+      MSG.WELCOME_REPLIES
+    );
     return;
   }
 
@@ -296,57 +322,47 @@ async function handleOrder(senderId, session, text, lower) {
     return;
   }
 
-  // Not enough info, ask again
-  await sendText(senderId, MSG.ORDER_ASK);
+  // Not enough info
+  await sendText(senderId, pick([
+    'Нэр, утас, хаягаа бичээд явуулаарай 😊',
+    'Мэдээлэл дутуу байна 😅 Нэр, утас, хаягаа бичнэ үү!',
+    'Бараг боллоо! Нэр, утас, хаягаа дараалуулаад бичээрэй 👇',
+  ]));
 }
 
-// Random picker
+// ===== Helpers =====
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Helpers — isNegative-г ЭХЛЭЭД шалгана (авахгүй = negative, авах = positive)
 function isNegative(text) {
   const negatives = [
-    // Шууд үгүйсгэх
-    'үгүй', 'үгүйээ', 'болих', 'болихоо', 'болиход', 'дараа', 'дараагаар',
+    'үгүй', 'үгүйээ', 'болих', 'болихоо', 'дараа', 'дараагаар',
     'no', 'nah', 'nope', 'нет',
-    // -гүй дагавар
     'хэрэггүй', 'байхгүй', 'болохгүй', 'ойлгохгүй',
     'авахгүй', 'хүсэхгүй', 'мэдэхгүй', 'сонирхохгүй',
-    'чадахгүй', 'идэхгүй', 'хэрэглэхгүй', 'хариулахгүй',
-    'захиалахгүй', 'итгэхгүй', 'таалагдахгүй', 'хүлээхгүй',
-    // Баяртай / татгалзах
+    'чадахгүй', 'хэрэглэхгүй', 'захиалахгүй', 'итгэхгүй',
+    'таалагдахгүй', 'хүлээхгүй',
     'баяртай', 'явъя', 'явах', 'болсон', 'болчихсон',
     'хэрэг алга', 'шаардлагагүй', 'огт', 'хэзээ ч',
-    'салах', 'гараад', 'устгах',
   ];
   return negatives.some((n) => text.includes(n));
 }
 
 function isPositive(text) {
-  // Negative-тэй давхцахгүйн тулд эхлээд negative шалгана
   if (isNegative(text)) return false;
   const positives = [
-    // Шууд зөвшөөрөх
     'тийм', 'тиймээ', 'за', 'заа', 'зааа', 'зүгээр',
     'yes', 'yeah', 'yep', 'yup', 'ok', 'okay', 'ок', 'окей',
-    // Авах хүсэх
-    'авах', 'авна', 'авмаар', 'авъя', 'авья', 'авч',
-    'авлаа', 'авмаар байна', 'авахыг', 'аваад',
-    // Захиалах
+    'авах', 'авна', 'авмаар', 'авъя', 'авья', 'авч', 'авчих',
+    'авлаа', 'аваад',
     'захиалах', 'захиална', 'захиалъя', 'захиалмаар',
-    // Сонирхол
-    'болно', 'болъё', 'болъе', 'яваарай', 'явуул',
+    'болно', 'болъё', 'болъе', 'явуул',
     'зөв', 'гоё', 'гое', 'зөвшөөр', 'таалагд',
     'хүсч', 'хүсэж', 'хүснэ', 'хүсмээр',
     'сонирхож', 'сонирхолтой', 'сонирхоод',
     'хэрэгтэй', 'надад хэрэгтэй',
-    'мэдмээр', 'мэдэхийг',
-    // Үнэ / дэлгэрэнгүй
-    'үнэ', 'хэд вэ', 'хэдтэй', 'ямар үнэ',
     'дэлгэрэнгүй', 'тайлбарла',
-    // Сэтгэл хөдлөл
     'гайгүй', 'дажгүй', 'сайхан', 'их сайн', 'маш сайн',
     'супер', 'класс', 'ваау', 'вау', 'wow',
   ];
