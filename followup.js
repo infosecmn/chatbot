@@ -1,4 +1,4 @@
-const { sendText } = require('./messenger');
+const { sendText, sendQuickReplies } = require('./messenger');
 const { getSession, getAllSessions } = require('./sessions');
 const MSG = require('./messages');
 const config = require('./config');
@@ -16,7 +16,7 @@ function scheduleFollowup(senderId) {
     const s = getSession(senderId);
     if (s.state !== 'DONE' && s.state !== 'OPERATOR') {
       s.followupCount++;
-      await sendText(senderId, MSG.FOLLOWUP_1);
+      await sendQuickReplies(senderId, MSG.FOLLOWUP_1, MSG.FOLLOWUP_1_REPLIES);
     }
   }, config.FOLLOWUP_DELAY_1);
 
@@ -25,7 +25,7 @@ function scheduleFollowup(senderId) {
     const s = getSession(senderId);
     if (s.state !== 'DONE' && s.state !== 'OPERATOR') {
       s.followupCount++;
-      await sendText(senderId, MSG.FOLLOWUP_2);
+      await sendQuickReplies(senderId, MSG.FOLLOWUP_2, MSG.FOLLOWUP_2_REPLIES);
     }
   }, config.FOLLOWUP_DELAY_2);
 

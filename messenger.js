@@ -21,18 +21,16 @@ async function sendText(recipientId, text) {
 
 async function sendQuickReplies(recipientId, text, replies) {
   try {
+    const quick_replies = replies.map((r) =>
+      typeof r === 'string'
+        ? { content_type: 'text', title: r, payload: r }
+        : { content_type: 'text', title: r.title, payload: r.payload }
+    );
     await axios.post(
       `${API}/me/messages`,
       {
         recipient: { id: recipientId },
-        message: {
-          text,
-          quick_replies: replies.map((r) => ({
-            content_type: 'text',
-            title: r,
-            payload: r,
-          })),
-        },
+        message: { text, quick_replies },
         messaging_type: 'RESPONSE',
       },
       { params: { access_token: config.PAGE_ACCESS_TOKEN } }

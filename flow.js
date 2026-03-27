@@ -5,7 +5,7 @@ const MSG = require('./messages');
 const { scheduleFollowup } = require('./followup');
 
 // Comment trigger keywords
-const COMMENT_TRIGGERS = ['үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info'];
+const COMMENT_TRIGGERS = ['үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info', 'захиалах', 'хэрхэн'];
 
 function isCommentTrigger(text) {
   const lower = text.toLowerCase();
@@ -23,10 +23,9 @@ async function handleMessage(senderId, text) {
     return;
   }
 
-  if (lower === 'дахин' || lower === 'reset' || lower === 'эхлэх') {
+  if (lower === 'дахин' || lower === 'reset' || lower === 'эхлэх' || lower === 'hi' || lower === 'hello' || lower === 'сайн байна уу') {
     resetSession(senderId);
-    await sendText(senderId, MSG.WELCOME);
-    await sendQuickReplies(senderId, MSG.GOAL_ASK, ['1', '2', '3']);
+    await sendQuickReplies(senderId, MSG.WELCOME, MSG.WELCOME_REPLIES);
     return;
   }
 
@@ -35,8 +34,6 @@ async function handleMessage(senderId, text) {
       await handleNew(senderId, session, lower);
       break;
     case 'HOOK':
-      await handleGoal(senderId, session, lower);
-      break;
     case 'GOAL':
       await handleGoal(senderId, session, lower);
       break;
@@ -53,28 +50,44 @@ async function handleMessage(senderId, text) {
       await handleOrder(senderId, session, text);
       break;
     case 'DONE':
-      await sendText(senderId, 'Таны захиалга баталгаажсан ✅\nАсуулт байвал "ОПЕРАТОР" гэж бичнэ үү');
+      await sendQuickReplies(
+        senderId,
+        'Таны захиалга баталгаажсан ✅\nӨөр юу хэрэгтэй вэ?',
+        [
+          { title: '📋 Өөр бүтээгдэхүүн', payload: 'ДАХИН' },
+          { title: '📞 Оператор', payload: 'ОПЕРАТОР' },
+        ]
+      );
       break;
     default:
       await handleNew(senderId, session, lower);
   }
 }
 
-// NEW -> HOOK -> GOAL
+// NEW -> GOAL
 async function handleNew(senderId, session, text) {
   // Check if text already contains a product hint
   const product = findProduct(text);
   if (product) {
     session.product = product;
     session.state = 'PRODUCT';
-    await sendText(senderId, product.message);
+    await sendQuickReplies(senderId, product.message, MSG.PRODUCT_REPLIES);
+    scheduleFollowup(senderId);
+    return;
+  }
+
+  // Check if it's a goal number
+  const byNum = getProductByNumber(text.trim());
+  if (byNum) {
+    session.product = byNum;
+    session.state = 'PRODUCT';
+    await sendQuickReplies(senderId, byNum.message, MSG.PRODUCT_REPLIES);
     scheduleFollowup(senderId);
     return;
   }
 
   session.state = 'GOAL';
-  await sendText(senderId, MSG.WELCOME);
-  await sendQuickReplies(senderId, MSG.GOAL_ASK, ['1', '2', '3']);
+  await sendQuickReplies(senderId, MSG.WELCOME, MSG.WELCOME_REPLIES);
   scheduleFollowup(senderId);
 }
 
@@ -85,7 +98,7 @@ async function handleGoal(senderId, session, text) {
   if (byNum) {
     session.product = byNum;
     session.state = 'PRODUCT';
-    await sendText(senderId, byNum.message);
+    await sendQuickReplies(senderId, byNum.message, MSG.PRODUCT_REPLIES);
     return;
   }
 
@@ -94,13 +107,12 @@ async function handleGoal(senderId, session, text) {
   if (product) {
     session.product = product;
     session.state = 'PRODUCT';
-    await sendText(senderId, product.message);
+    await sendQuickReplies(senderId, product.message, MSG.PRODUCT_REPLIES);
     return;
   }
 
-  // Can't understand
-  session.state = 'GOAL';
-  await sendQuickReplies(senderId, MSG.GOAL_ASK, ['1', '2', '3']);
+  // Can't understand - show options with quick replies
+  await sendQuickReplies(senderId, MSG.UNKNOWN, MSG.UNKNOWN_REPLIES);
 }
 
 // PRODUCT -> TRUST (user says yes/interested)
@@ -111,25 +123,29 @@ async function handleProductResponse(senderId, session, text) {
     // Auto advance to urgency after trust
     setTimeout(async () => {
       session.state = 'URGENCY';
-      await sendText(senderId, MSG.URGENCY);
+      await sendQuickReplies(senderId, MSG.URGENCY, MSG.URGENCY_REPLIES);
     }, 2000);
     return;
   }
 
   if (isNegative(text)) {
     session.state = 'GOAL';
-    await sendQuickReplies(senderId, 'Өөр бүтээгдэхүүн сонирхож байна уу? 👇', ['1', '2', '3']);
+    await sendQuickReplies(senderId, 'Өөр бүтээгдэхүүн сонирхож байна уу? 👇', MSG.GOAL_REPLIES);
     return;
   }
 
-  // Repeat product info
-  await sendText(senderId, session.product?.message || MSG.GOAL_ASK);
+  // Repeat product info with buttons
+  await sendQuickReplies(
+    senderId,
+    session.product?.message || MSG.GOAL_ASK,
+    MSG.PRODUCT_REPLIES
+  );
 }
 
 // TRUST -> URGENCY -> CLOSE
 async function handleTrustResponse(senderId, session, text) {
   session.state = 'URGENCY';
-  await sendText(senderId, MSG.URGENCY);
+  await sendQuickReplies(senderId, MSG.URGENCY, MSG.URGENCY_REPLIES);
 }
 
 async function handleUrgencyResponse(senderId, session, text) {
@@ -141,21 +157,27 @@ async function handleUrgencyResponse(senderId, session, text) {
 
   if (isNegative(text)) {
     scheduleFollowup(senderId);
-    await sendText(senderId, 'Ойлголоо 😊 Дараа дахин бичээрэй!');
+    await sendQuickReplies(
+      senderId,
+      'Ойлголоо 😊 Дараа дахин бодоорой!',
+      [
+        { title: '📋 Бусад бүтээгдэхүүн', payload: 'ДАХИН' },
+        { title: '📞 Оператор', payload: 'ОПЕРАТОР' },
+      ]
+    );
     return;
   }
 
+  // Default: assume positive
   session.state = 'CLOSE';
   await sendText(senderId, MSG.ORDER_ASK);
 }
 
-// CLOSE -> DELIVERY (collect order info)
+// CLOSE -> DONE (collect order info)
 async function handleOrder(senderId, session, text) {
-  // Try to parse order info from the message
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
 
   if (lines.length >= 2) {
-    // Got structured order info
     session.order = {
       raw: text,
       timestamp: new Date().toISOString(),
@@ -174,12 +196,19 @@ async function handleOrder(senderId, session, text) {
 
 // Helpers
 function isPositive(text) {
-  const positives = ['тийм', 'за', 'авах', 'авна', 'авмаар', 'yes', 'ok', 'ок', 'авъя', 'болно', 'захиалах', 'захиална'];
+  const positives = [
+    'тийм', 'за', 'авах', 'авна', 'авмаар', 'yes', 'ok', 'ок',
+    'авъя', 'болно', 'захиалах', 'захиална', 'зөв', 'сайн', 'гоё',
+    'авья', 'хүсч', 'сонирхож', 'мэдэх', 'үнэ',
+  ];
   return positives.some((p) => text.includes(p));
 }
 
 function isNegative(text) {
-  const negatives = ['үгүй', 'болихоо', 'дараа', 'no', 'нет', 'хэрэггүй'];
+  const negatives = [
+    'үгүй', 'болих', 'дараа', 'no', 'нет', 'хэрэггүй',
+    'байхгүй', 'болохгүй', 'ойлгохгүй',
+  ];
   return negatives.some((n) => text.includes(n));
 }
 
