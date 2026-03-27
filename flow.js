@@ -7,19 +7,65 @@ const { scheduleFollowup } = require('./followup');
 // Latin -> Mongolian transliteration map
 const LATIN_MAP = {
   // Global commands
-  'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин', 'heruul': 'хэрүүл',
-  // Positive
+  'operator': 'оператор', 'dahin': 'дахин', 'ehleh': 'эхлэх', 'reset': 'дахин',
+  'heruul': 'хэрүүл', 'menu': 'дахин', 'start': 'эхлэх',
+
+  // Greetings
+  'sain': 'сайн', 'baina': 'байна', 'uu': 'уу', 'sainuu': 'сайн уу',
+  'saixan': 'сайхан', 'zugeer': 'зүгээр',
+
+  // Positive responses
   'tiim': 'тийм', 'za': 'за', 'avah': 'авах', 'avna': 'авна', 'avmaar': 'авмаар',
   'avya': 'авъя', 'bolno': 'болно', 'zahialah': 'захиалах', 'zahialna': 'захиална',
-  'zuv': 'зөв', 'sain': 'сайн', 'goyo': 'гоё', 'husч': 'хүсч', 'medeh': 'мэдэх',
-  'une': 'үнэ', 'sonirhoz': 'сонирхож',
-  // Negative
-  'ugui': 'үгүй', 'bolih': 'болих', 'daraa': 'дараа', 'hereggui': 'хэрэггүй',
-  'baihgui': 'байхгүй', 'bolohgui': 'болохгүй', 'oilgohgui': 'ойлгохгүй',
-  // Products / goals
-  'jin': 'жин', 'turah': 'турах', 'bulchin': 'булчин', 'darhlaa': 'дархлаа',
-  'vitamin': 'витамин', 'eruul': 'эрүүл', 'protein': 'протейн',
-  'gym': 'фитнес', 'slim': 'турах', 'diet': 'турах',
+  'zuv': 'зөв', 'goyo': 'гоё', 'goye': 'гоё', 'goe': 'гоё',
+  'husч': 'хүсч', 'husej': 'хүсэж', 'husne': 'хүснэ',
+  'une': 'үнэ', 'sonirhoz': 'сонирхож', 'sonirhoj': 'сонирхож',
+  'heregtei': 'хэрэгтэй', 'iim': 'ийм', 'zaa': 'за', 'zaaa': 'за',
+  'ok': 'за', 'okay': 'за', 'yup': 'тийм', 'yep': 'тийм',
+  'hamar': 'хамар', 'aviya': 'авъя', 'avch': 'авч',
+  'medeh': 'мэдэх', 'medehleh': 'мэдэхлэх',
+  'hүseh': 'хүсэх', 'sonirh': 'сонирх',
+
+  // Negative responses
+  'ugui': 'үгүй', 'bolih': 'болих', 'daraa': 'дараа',
+  'hereggui': 'хэрэггүй', 'baihgui': 'байхгүй',
+  'bolohgui': 'болохгүй', 'oilgohgui': 'ойлгохгүй',
+  'avahgui': 'авахгүй', 'husehgui': 'хүсэхгүй',
+  'medehgui': 'мэдэхгүй', 'sonirohgui': 'сонирхохгүй',
+  'ilduu': 'илдүү', 'ildүү': 'илдүү', 'yavah': 'явах',
+  'uuchlaarai': 'уучлаарай', 'bayrtai': 'баяртай',
+
+  // Products / goals - weight loss
+  'jin': 'жин', 'turah': 'турах', 'turaah': 'тураах', 'turna': 'турна',
+  'ooh': 'өөх', 'uuh': 'өөх', 'hasah': 'хасах', 'hasna': 'хасна',
+  'slim': 'турах', 'diet': 'турах', 'weight': 'жин',
+  'calorie': 'калори', 'kalori': 'калори',
+  'targa': 'тарга', 'targalah': 'таргалах', 'turaaх': 'тураах',
+  'shahah': 'шахах', 'shataah': 'шатаах',
+
+  // Products / goals - muscle
+  'bulchin': 'булчин', 'muscle': 'булчин', 'protein': 'протейн',
+  'proteiin': 'протейн', 'gym': 'фитнес', 'fitness': 'фитнес',
+  'fitnes': 'фитнес', 'osgoh': 'өсгөх', 'tamir': 'тамир',
+  'dasgal': 'дасгал', 'huch': 'хүч', 'huchtei': 'хүчтэй',
+  'bodybuilding': 'булчин', 'workout': 'дасгал', 'bcaa': 'булчин',
+
+  // Products / goals - immunity
+  'darhlaa': 'дархлаа', 'vitamin': 'витамин', 'eruul': 'эрүүл',
+  'eruul mend': 'эрүүл мэнд', 'bie': 'бие', 'health': 'эрүүл',
+  'immune': 'дархлаа', 'immunity': 'дархлаа',
+  'omega': 'дархлаа', 'multivitamin': 'витамин',
+  'hanalga': 'ханалга', 'shahtah': 'шахтах',
+  'uvduh': 'өвдөх', 'ovdoh': 'өвдөх', 'haluun': 'халуун',
+  'tomuu': 'томуу', 'haniad': 'ханиад', 'daah': 'даах',
+
+  // General health terms
+  'эмчилгээ': 'эмчилгээ', 'emchilgee': 'эмчилгээ',
+  'shuud': 'шууд', 'hurdan': 'хурдан', 'udaan': 'удаан',
+  'saihan': 'сайхан', 'muhai': 'муухай',
+  'zurhni': 'зүрхний', 'zurh': 'зүрх',
+  'hadgalah': 'хадгалах', 'hudaldan': 'худалдан',
+  'bagts': 'багц', 'bagc': 'багц',
 };
 
 // Transliterate Latin text to Mongolian
@@ -33,7 +79,12 @@ function transliterate(text) {
 }
 
 // Comment trigger keywords
-const COMMENT_TRIGGERS = ['үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info', 'захиалах', 'хэрхэн'];
+const COMMENT_TRIGGERS = [
+  'үнэ', 'ямар', 'хэд', 'авах', 'мэдээлэл', 'price', 'info', 'захиалах', 'хэрхэн',
+  'хэдтэй', 'хэд вэ', 'зарна', 'зарах', 'хямдрал', 'хямд', 'хаанаас', 'хаана',
+  'сонирхож', 'надад', 'хэрэгтэй', 'хэрхэн авах', 'юу вэ', 'тайлбар',
+  'une', 'hed', 'avah', 'haana', 'hamgiin',
+];
 
 function isCommentTrigger(text) {
   const lower = text.toLowerCase();
@@ -59,7 +110,12 @@ async function handleMessage(senderId, text) {
     return;
   }
 
-  if (lower === 'дахин' || lower === 'reset' || lower === 'эхлэх' || lower === 'hi' || lower === 'hello' || lower === 'сайн байна уу') {
+  const greetings = [
+    'дахин', 'reset', 'эхлэх', 'hi', 'hello', 'hey', 'yo',
+    'сайн байна уу', 'сайн уу', 'сайнуу', 'байна уу', 'юу байна',
+    'сайн бна уу', 'мэнд', 'мэндээ', 'зугаатай', 'зөгөөр',
+  ];
+  if (greetings.some((g) => lower === g || lower.startsWith(g + ' '))) {
     resetSession(senderId);
     await sendQuickReplies(senderId, MSG.WELCOME, MSG.WELCOME_REPLIES);
     return;
@@ -155,12 +211,7 @@ async function handleGoal(senderId, session, text) {
 async function handleProductResponse(senderId, session, text) {
   if (isPositive(text)) {
     session.state = 'TRUST';
-    await sendText(senderId, MSG.TRUST);
-    // Auto advance to urgency after trust
-    setTimeout(async () => {
-      session.state = 'URGENCY';
-      await sendQuickReplies(senderId, MSG.URGENCY, MSG.URGENCY_REPLIES);
-    }, 2000);
+    await sendQuickReplies(senderId, MSG.TRUST, MSG.URGENCY_REPLIES);
     return;
   }
 
@@ -257,9 +308,18 @@ function pickRandom(arr) {
 // Helpers — isNegative-г ЭХЛЭЭД шалгана (авахгүй = negative, авах = positive)
 function isNegative(text) {
   const negatives = [
-    'үгүй', 'болих', 'дараа', 'no', 'нет', 'хэрэггүй',
-    'байхгүй', 'болохгүй', 'ойлгохгүй', 'авахгүй', 'хүсэхгүй',
-    'мэдэхгүй', 'сонирхохгүй',
+    // Шууд үгүйсгэх
+    'үгүй', 'үгүйээ', 'болих', 'болихоо', 'болиход', 'дараа', 'дараагаар',
+    'no', 'nah', 'nope', 'нет',
+    // -гүй дагавар
+    'хэрэггүй', 'байхгүй', 'болохгүй', 'ойлгохгүй',
+    'авахгүй', 'хүсэхгүй', 'мэдэхгүй', 'сонирхохгүй',
+    'чадахгүй', 'идэхгүй', 'хэрэглэхгүй', 'хариулахгүй',
+    'захиалахгүй', 'итгэхгүй', 'таалагдахгүй', 'хүлээхгүй',
+    // Баяртай / татгалзах
+    'баяртай', 'явъя', 'явах', 'болсон', 'болчихсон',
+    'хэрэг алга', 'шаардлагагүй', 'огт', 'хэзээ ч',
+    'салах', 'гараад', 'устгах',
   ];
   return negatives.some((n) => text.includes(n));
 }
@@ -268,9 +328,27 @@ function isPositive(text) {
   // Negative-тэй давхцахгүйн тулд эхлээд negative шалгана
   if (isNegative(text)) return false;
   const positives = [
-    'тийм', 'за', 'авах', 'авна', 'авмаар', 'yes', 'ok', 'ок',
-    'авъя', 'болно', 'захиалах', 'захиална', 'зөв', 'гоё',
-    'авья', 'хүсч', 'сонирхож', 'үнэ',
+    // Шууд зөвшөөрөх
+    'тийм', 'тиймээ', 'за', 'заа', 'зааа', 'зүгээр',
+    'yes', 'yeah', 'yep', 'yup', 'ok', 'okay', 'ок', 'окей',
+    // Авах хүсэх
+    'авах', 'авна', 'авмаар', 'авъя', 'авья', 'авч',
+    'авлаа', 'авмаар байна', 'авахыг', 'аваад',
+    // Захиалах
+    'захиалах', 'захиална', 'захиалъя', 'захиалмаар',
+    // Сонирхол
+    'болно', 'болъё', 'болъе', 'яваарай', 'явуул',
+    'зөв', 'гоё', 'гое', 'зөвшөөр', 'таалагд',
+    'хүсч', 'хүсэж', 'хүснэ', 'хүсмээр',
+    'сонирхож', 'сонирхолтой', 'сонирхоод',
+    'хэрэгтэй', 'надад хэрэгтэй',
+    'мэдмээр', 'мэдэхийг',
+    // Үнэ / дэлгэрэнгүй
+    'үнэ', 'хэд вэ', 'хэдтэй', 'ямар үнэ',
+    'дэлгэрэнгүй', 'тайлбарла',
+    // Сэтгэл хөдлөл
+    'гайгүй', 'дажгүй', 'сайхан', 'их сайн', 'маш сайн',
+    'супер', 'класс', 'ваау', 'вау', 'wow',
   ];
   return positives.some((p) => text.includes(p));
 }
