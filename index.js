@@ -9,7 +9,7 @@ app.use(express.json());
 
 // ===== Health check =====
 app.get('/', (req, res) => {
-  res.send('Erhembayr Chatbot is running 🤖');
+  res.send('Siberian Wellness Chatbot is running 🤖');
 });
 
 // ===== Webhook verification (Facebook requires this) =====
@@ -92,7 +92,7 @@ app.get('/privacy-policy', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy - Erhembayr</title>
+  <title>Privacy Policy - Siberian Wellness</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
     h1 { color: #1a73e8; }
@@ -103,7 +103,7 @@ app.get('/privacy-policy', (req, res) => {
 <body>
   <h1>Privacy Policy</h1>
   <p><strong>Last updated:</strong> March 27, 2026</p>
-  <p><strong>Erhembayr</strong> ("we", "our", "us") operates a Facebook Messenger chatbot that helps customers learn about and purchase health and supplement products.</p>
+  <p><strong>Siberian Wellness</strong> ("we", "our", "us") operates a Facebook Messenger chatbot that helps customers learn about and purchase health and supplement products.</p>
 
   <h2>Information We Collect</h2>
   <p>When you interact with our chatbot through Facebook Messenger, we may collect:</p>
@@ -143,6 +143,6 @@ app.get('/privacy-policy', (req, res) => {
 
 // ===== Start server =====
 app.listen(config.PORT, () => {
-  console.log(`Erhembayr Bot running on port ${config.PORT}`);
+  console.log(`Siberian Wellness Bot running on port ${config.PORT}`);
   console.log(`Webhook URL: https://your-domain.com/webhook`);
 });
